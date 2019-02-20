@@ -11,6 +11,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type Event struct {
+	Type string `json:"type"`
+}
+
 func follow(filename string) error {
 	f, err := os.Open(filename)
 	if err != nil {
@@ -26,6 +30,7 @@ func follow(filename string) error {
 		if err != nil && err != io.EOF {
 			return err
 		}
+		// handle event
 		fmt.Print(string(by))
 		if err != io.EOF {
 			continue
