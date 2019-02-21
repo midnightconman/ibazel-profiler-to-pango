@@ -1,2 +1,2 @@
-# ibazel-profiler-to-pango
-A go application to tail ibazel profiler and spit out pango markup
+# ibazel-profiler-to-yabar
+A go application to tail ibazel profiler and spit out yabar dynamic colors
