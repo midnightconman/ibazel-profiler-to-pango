@@ -2,8 +2,9 @@ package main
 
 import (
 	"bufio"
-	"flag"
+	"encoding/json"
 	"fmt"
+	"flag"
 	"io"
 	"os"
 
@@ -18,11 +19,14 @@ type Event struct {
 func follow(filename string) error {
 	f, err := os.Open(filename)
 	if err != nil {
-		log.Errorf("File open error: %+v", err)
+		log.Fatalf("File open error: %#v", err)
 	}
 	watcher, _ := fsnotify.NewWatcher()
 	defer watcher.Close()
-	_ = watcher.Add(filename)
+	err = watcher.Add(filename)
+	if err != nil {
+		log.Errorf("Error adding watcher: %#v", err)
+	}
 
 	r := bufio.NewReader(f)
 	for {
@@ -30,9 +34,16 @@ func follow(filename string) error {
 		if err != nil && err != io.EOF {
 			return err
 		}
-		// handle event
-		fmt.Print(string(by))
 		if err != io.EOF {
+			log.Infof("Handling event: %s", string(by))
+			currentEvent, err := handle(by)
+			if err != nil {
+				return err
+			}
+			err = writeFile(currentEvent)
+			if err != nil {
+				log.Errorf("writeFile error: %+v", err)
+			}
 			continue
 		}
 		if err = waitForChange(watcher); err != nil {
@@ -54,9 +65,46 @@ func waitForChange(w *fsnotify.Watcher) error {
 	}
 }
 
-var file = flag.String("file", "profile.json", "The name and path of the file to follow.")
+func handle(b []byte) (string, error) {
+	e := Event{}
+	err := json.Unmarshal(b, &e)
+	if err != nil {
+		log.Errorf("json unmarshal error: %#v", err)
+	}
+
+	switch e.Type {
+	case "TEST_DONE":
+		return "!Ybg0xff000000Y!"+e.Type, nil
+	case "TEST_FAILED":
+		return "!Ybg0xff8b0500Y!"+e.Type, nil
+	}
+	return currentEvent, nil
+}
+
+func writeFile(s string) error {
+	f, err := os.OpenFile(*outputFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return fmt.Errorf("OpenFile error: %+v", err)
+	}
+	if _, err := f.Write([]byte(s)); err != nil {
+		return fmt.Errorf("File Write error: %+v", err)
+	}
+	f.Sync()
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("File Close error: %+x", err)
+	}
+	return nil
+}
+
+var (
+	home = os.Getenv("HOME")
+	file = flag.String("file", home+"/.cache/ibazel-profile.json", "The name and path of the file to follow.")
+	outputFile = flag.String("output-file", home+"/.cache/ibazel-event", "The name and path of the output file.")
+	currentEvent = "!Ybg0xff000000Y!NO_DATA"
+)
 
 func main() {
+	flag.Parse()
 	log.Infof("Starting to follow %s", *file)
 	follow(*file)
 }
