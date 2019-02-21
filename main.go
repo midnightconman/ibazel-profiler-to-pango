@@ -3,8 +3,8 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"flag"
+	"fmt"
 	"io"
 	"os"
 
@@ -74,9 +74,11 @@ func handle(b []byte) (string, error) {
 
 	switch e.Type {
 	case "TEST_DONE":
-		return "!Ybg0xff000000Y!"+e.Type, nil
+		currentEvent = "!Ybg0xff000000Y!" + e.Type
 	case "TEST_FAILED":
-		return "!Ybg0xff8b0500Y!"+e.Type, nil
+		currentEvent = "!Ybg0xff8b0500Y!" + e.Type
+	case "TEST_START":
+		currentEvent = "!Ybg0xff000000Y!" + e.Type
 	}
 	return currentEvent, nil
 }
@@ -97,9 +99,9 @@ func writeFile(s string) error {
 }
 
 var (
-	home = os.Getenv("HOME")
-	file = flag.String("file", home+"/.cache/ibazel-profile.json", "The name and path of the file to follow.")
-	outputFile = flag.String("output-file", home+"/.cache/ibazel-event", "The name and path of the output file.")
+	home         = os.Getenv("HOME")
+	file         = flag.String("file", home+"/.cache/ibazel-profile.json", "The name and path of the file to follow.")
+	outputFile   = flag.String("output-file", home+"/.cache/ibazel-event", "The name and path of the output file.")
 	currentEvent = "!Ybg0xff000000Y!NO_DATA"
 )
 
