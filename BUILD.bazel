@@ -19,6 +19,7 @@ go_library(
 
 go_image(
     name = "image",
+	  base = "@alpine//image",
     embed = [":go_default_library"],
     importpath = "github.com/midnightconman/ibazel-profiler-to-yabar",
     goarch = "amd64",

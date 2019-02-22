@@ -37,6 +37,16 @@ load(
 
 _go_image_repos()
 
+
+load("@io_bazel_rules_docker//container:container.bzl", "container_pull")
+
+container_pull(
+    name = "alpine",
+    registry = "index.docker.io",
+    repository = "library/alpine",
+    digest = "sha256:b3dbf31b77fd99d9c08f780ce6f5282aba076d70a513a8be859d8d3a4d0c92b8",
+)
+
 # external dependencies
 
 go_repository(
