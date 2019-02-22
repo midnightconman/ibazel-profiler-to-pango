@@ -21,11 +21,14 @@ func follow(filename string) error {
 	if err != nil {
 		log.Fatalf("File open error: %#v", err)
 	}
-	watcher, _ := fsnotify.NewWatcher()
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatalf("Error creating watcher: %#v", err)
+	}
 	defer watcher.Close()
 	err = watcher.Add(filename)
 	if err != nil {
-		log.Errorf("Error adding watcher: %#v", err)
+		log.Fatalf("Error adding watcher: %#v", err)
 	}
 
 	r := bufio.NewReader(f)
@@ -75,11 +78,11 @@ func handle(b []byte) (string, error) {
 
 	switch e.Type {
 	case "TEST_DONE":
-		currentEvent = "!Ybg0xff000000Y!" + e.Type
+		currentEvent = "!Ybg0xff2a6f78Y!" + e.Type
 	case "TEST_FAILED":
 		currentEvent = "!Ybg0xff8b0500Y!" + e.Type
 	case "TEST_START":
-		currentEvent = "!Ybg0xff000000Y!" + e.Type
+		currentEvent = "!Ybg0xff404040Y!" + e.Type
 	}
 	return currentEvent, nil
 }
