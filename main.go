@@ -77,11 +77,11 @@ func handle(b []byte) (string, error) {
 	}
 
 	switch e.Type {
-	case "TEST_DONE":
+	case "BUILD_DONE", "TEST_DONE":
 		currentEvent = "!Ybg0xff2a6f78Y!" + e.Type
-	case "TEST_FAILED":
+	case "BUILD_FAILED", "TEST_FAILED":
 		currentEvent = "!Ybg0xff8b0500Y!" + e.Type
-	case "TEST_START":
+	case "BUILD_START", "TEST_START":
 		currentEvent = "!Ybg0xff404040Y!" + e.Type
 	}
 	return currentEvent, nil
