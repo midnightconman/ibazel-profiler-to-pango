@@ -43,6 +43,12 @@ go_repository(
 )
 
 go_repository(
+    name = "com_github_konsorten_go_windows_terminal_sequences",
+    commit = "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242",
+    importpath = "github.com/konsorten/go-windows-terminal-sequences",
+)
+
+go_repository(
     name = "com_github_sirupsen_logrus",
     commit = "4f5fd631f16452fbd023813c1eb7dbd67130cb0c",
     importpath = "github.com/sirupsen/logrus",
