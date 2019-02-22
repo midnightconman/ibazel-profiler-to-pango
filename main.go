@@ -70,6 +70,7 @@ func handle(b []byte) (string, error) {
 	err := json.Unmarshal(b, &e)
 	if err != nil {
 		log.Errorf("json unmarshal error: %#v", err)
+		return currentEvent, nil
 	}
 
 	switch e.Type {
