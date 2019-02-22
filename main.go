@@ -39,7 +39,7 @@ func follow(filename string) error {
 		}
 		if err != io.EOF {
 			log.Infof("Handling event: %s", string(by))
-			currentEvent, err := handle(by)
+			err := handle(by)
 			if err != nil {
 				return err
 			}
@@ -68,12 +68,12 @@ func waitForChange(w *fsnotify.Watcher) error {
 	}
 }
 
-func handle(b []byte) (string, error) {
+func handle(b []byte) error {
 	e := Event{}
 	err := json.Unmarshal(b, &e)
 	if err != nil {
 		log.Errorf("json unmarshal error: %#v", err)
-		return currentEvent, nil
+		return err
 	}
 
 	switch e.Type {
@@ -84,7 +84,7 @@ func handle(b []byte) (string, error) {
 	case "BUILD_START", "TEST_START":
 		currentEvent = "!Ybg0xff404040Y!" + e.Type
 	}
-	return currentEvent, nil
+	return nil
 }
 
 func writeFile(s string) error {
