@@ -21,11 +21,14 @@ func follow(filename string) error {
 	if err != nil {
 		log.Fatalf("File open error: %#v", err)
 	}
-	watcher, _ := fsnotify.NewWatcher()
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatalf("Error creating watcher: %#v", err)
+	}
 	defer watcher.Close()
 	err = watcher.Add(filename)
 	if err != nil {
-		log.Errorf("Error adding watcher: %#v", err)
+		log.Fatalf("Error adding watcher: %#v", err)
 	}
 
 	r := bufio.NewReader(f)
