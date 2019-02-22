@@ -1,6 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_binary", "go_test")
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 
 # gazelle:prefix github.com/midnightconman/ibazel-profiler-to-yabar
 gazelle(name = "gazelle")
@@ -37,4 +38,13 @@ go_test(
     srcs = ["main_test.go"],
     embed = [":go_default_library"],
     importpath = "github.com/midnightconman/ibazel-profiler-to-yabar",
+)
+
+container_push(
+   name = "push",
+   image = ":image",
+   format = "Docker",
+   registry = "index.docker.io",
+   repository = "midnightconman/ibazel-profiler-to-yabar",
+   tag = "latest",
 )
