@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/fsnotify/fsnotify"
 	log "github.com/sirupsen/logrus"
@@ -44,10 +45,18 @@ func follow(filename string) error {
 			if err != nil {
 				return err
 			}
-			err = writeFile(currentEvent)
-			if err != nil {
-				log.Errorf("writeFile error: %+v", err)
-			}
+			switch strings.ToLower(*outputMode) {
+			default:
+				err = writeFile(currentEvent)
+				if err != nil {
+					log.Errorf("writeFile error: %+v", err)
+				}
+			case "command":
+				cmd := exec.Command("sh", "-c", currentCommand)
+				if _, err := cmd.CombinedOutput(); err != nil {
+					log.Errorf("Error running command: %+v", err)
+				}
+		    }
 			continue
 		}
 		if err = waitForChange(watcher); err != nil {
@@ -79,29 +88,14 @@ func handle(b []byte) error {
 
 	switch e.Type {
 	case "BUILD_DONE", "TEST_DONE":
-		currentEvent = "!Ybg0xff2a6f78Y!" + e.Type
-		if *doneCommand != "" {
-			cmd := exec.Command("sh", "-c", *doneCommand)
-			if _, err := cmd.CombinedOutput(); err != nil {
-				log.Errorf("Error running done command: %+v", err)
-			}
-		}
+		currentEvent = "!Ybg0x"+*doneColor+"Y!" + e.Type
+		currentCommand = *doneCommand
 	case "BUILD_FAILED", "TEST_FAILED":
-		currentEvent = "!Ybg0xff8b0500Y!" + e.Type
-		if *failedCommand != "" {
-			cmd := exec.Command("sh", "-c", *failedCommand)
-			if _, err := cmd.CombinedOutput(); err != nil {
-				log.Errorf("Error running failed command: %+v", err)
-			}
-		}
+		currentEvent = "!Ybg0x"+*failedColor+"Y!" + e.Type
+		currentCommand = *failedCommand
 	case "BUILD_START", "TEST_START":
-		currentEvent = "!Ybg0xff404040Y!" + e.Type
-		if *startCommand != "" {
-			cmd := exec.Command("sh", "-c", *startCommand)
-			if _, err := cmd.CombinedOutput(); err != nil {
-				log.Errorf("Error running start command: %+v", err)
-			}
-		}
+		currentEvent = "!Ybg0x"+*startColor+"Y!" + e.Type
+		currentCommand = *startCommand
 	}
 	return nil
 }
@@ -124,11 +118,18 @@ func writeFile(s string) error {
 var (
 	home          = os.Getenv("HOME")
 	file          = flag.String("file", home+"/.cache/ibazel-profile.json", "The name and path of the file to follow.")
+	outputMode    = flag.String("output-mode", "file", "If you would like to use file or command mode.")
 	outputFile    = flag.String("output-file", home+"/.cache/ibazel-event", "The name and path of the output file.")
-	doneCommand   = flag.String("done-command", "", "The command to execute on *-DONE events")
-	failedCommand = flag.String("failed-command", "", "The command to execute on *-FAILED events")
-	startCommand  = flag.String("start-command", "", "The command to execute on *-START events")
-	currentEvent  = "!Ybg0xff000000Y!NO_DATA"
+	doneColor     = flag.String("done-color", "ff2a6f78", "The hexidecimal color to output on *-DONE events. Including alpha, ie. ff000000")
+	failedColor   = flag.String("failed-color", "ff8b0500", "The hexidecimal color to output on *-FAILED events. Including alpha, ie. ff000000")
+	startColor    = flag.String("start-color", "ff404040", "The hexidecimal color to output on *-START events. Including alpha, ie. ff000000")
+	// Command flags
+	doneCommand   = flag.String("done-command", "echo", "The command to execute on *-DONE events")
+	failedCommand = flag.String("failed-command", "echo", "The command to execute on *-FAILED events")
+	startCommand  = flag.String("start-command", "echo", "The command to execute on *-START events")
+	// (TODO): move these variables out into an event struct
+	currentEvent   = "!Ybg0xff000000Y!NO_DATA"
+	currentCommand = "echo"
 )
 
 func main() {
